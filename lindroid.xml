@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest>
+  <project name="Linux-on-droid/vendor_lindroid" path="vendor/lindroid" remote="github"
+    revision="lindroid-21" clone-depth="1" />
+  <project name="Linux-on-droid/vendor_extra" path="vendor/extra" remote="github"
+    revision="lindroid-21" clone-depth="1" />
+  <project name="Linux-on-droid/libhybris" path="external/libhybris" remote="github"
+    revision="lindroid-21" clone-depth="1" />
+  <project name="Linux-on-droid/external_lxc" path="external/lxc" remote="github"
+    revision="lindroid-21" clone-depth="1" />
+  <project name="TheMuppets/proprietary_vendor_xiaomi_rosemary" path="vendor/xiaomi/rosemary"
+    remote="github"
+    revision="lineage-21" clone-depth="1" />
+</manifest>
