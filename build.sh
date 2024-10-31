@@ -23,9 +23,9 @@ rm EventHub.patch ae700d3d04a2cd8b34e1dae434b0fdc9cde535c7.patch Ignore-uevent-s
 
 # shellcheck disable=SC2016
 echo '$(call inherit-product, vendor/lindroid/lindroid.mk)' >>device/xiaomi/rosemary/lineage_rosemary.mk
-echo "
-# Set SELinux to permissive
-BOARD_KERNEL_CMDLINE += androidboot.selinux=permissive" >>device/xiaomi/rosemary/BoardConfig.mk
+# echo "
+# # Set SELinux to permissive
+# BOARD_KERNEL_CMDLINE += androidboot.selinux=permissive" >>device/xiaomi/rosemary/BoardConfig.mk
 
 sed -i '/# CONFIG_SYSVIPC is not set/d' kernel/configs/r/android-4.14/android-base.config
 sed -i '/# CONFIG_FHANDLE is not set/d' kernel/configs/r/android-4.14/android-base.config
