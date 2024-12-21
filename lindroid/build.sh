@@ -2,7 +2,7 @@
 
 rm -rf .repo/local_manifests
 mkdir -p .repo/local_manifests
-wget https://raw.githubusercontent.com/LesVu/lindroid/refs/heads/main/lindroid.xml -O .repo/local_manifests/lindroid.xml
+wget https://raw.githubusercontent.com/LesVu/lindroid/refs/heads/main/lindroid/lindroid.xml -O .repo/local_manifests/lindroid.xml
 /opt/crave/resync.sh
 source build/envsetup.sh
 breakfast rosemary
@@ -10,13 +10,13 @@ breakfast rosemary
 rm kernel/xiaomi/mt6785/arch/arm64/configs/rosemary_defconfig
 wget https://raw.githubusercontent.com/LesVu/android_kernel_xiaomi_mt6785/refs/heads/lineage-21/arch/arm64/configs/rosemary-mod_defconfig -O kernel/xiaomi/mt6785/arch/arm64/configs/rosemary_defconfig
 
-wget https://raw.githubusercontent.com/LesVu/lindroid/refs/heads/main/EventHub.patch
+wget https://raw.githubusercontent.com/LesVu/lindroid/refs/heads/main/lindroid/EventHub.patch
 patch frameworks/native/services/inputflinger/reader/EventHub.cpp EventHub.patch
 
 wget https://github.com/android-kxxt/android_kernel_xiaomi_sm8450/commit/ae700d3d04a2cd8b34e1dae434b0fdc9cde535c7.patch
 patch kernel/xiaomi/mt6785/fs/overlayfs/util.c ae700d3d04a2cd8b34e1dae434b0fdc9cde535c7.patch
 
-wget https://raw.githubusercontent.com/LesVu/lindroid/refs/heads/main/Ignore-uevent-s-with-null-name-for-Extcon-WiredAcces.patch
+wget https://raw.githubusercontent.com/LesVu/lindroid/refs/heads/main/lindroid/Ignore-uevent-s-with-null-name-for-Extcon-WiredAcces.patch
 git apply Ignore-uevent-s-with-null-name-for-Extcon-WiredAcces.patch --directory=frameworks/base/
 
 rm EventHub.patch ae700d3d04a2cd8b34e1dae434b0fdc9cde535c7.patch Ignore-uevent-s-with-null-name-for-Extcon-WiredAcces.patch
