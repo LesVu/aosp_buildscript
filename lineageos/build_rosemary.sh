@@ -2,7 +2,7 @@
 
 rm -rf .repo/local_manifests
 mkdir -p .repo/local_manifests
-wget https://raw.githubusercontent.com/LesVu/lindroid/refs/heads/main/lineageos/rosemary.xml -O .repo/local_manifests/rosemary.xml
+wget https://raw.githubusercontent.com/LesVu/aosp_buildscript/refs/heads/main/lineageos/rosemary.xml -O .repo/local_manifests/rosemary.xml
 /opt/crave/resync.sh
 source build/envsetup.sh
 breakfast rosemary
