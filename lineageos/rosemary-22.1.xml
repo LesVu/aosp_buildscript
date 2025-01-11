@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest>
+  <project name="TheMuppets/proprietary_vendor_xiaomi_rosemary" path="vendor/xiaomi/rosemary"
+    remote="github"
+    revision="lineage-21" clone-depth="1" />
+  <project name="LesVu/android_device_xiaomi_rosemary" path="device/xiaomi/rosemary"
+    remote="github"
+    revision="lineage-22.1" clone-depth="1" />
+  <project name="LesVu/android_kernel_xiaomi_mt6785" path="kernel/xiaomi/mt6785"
+    remote="github"
+    revision="lineage-22.1" clone-depth="1" />
+  <project name="LineageOS/android_device_mediatek_sepolicy_vndr" path="device/mediatek/sepolicy_vndr"
+    remote="github"
+    revision="lineage-22.1" clone-depth="1" />
+  <project name="LineageOS/android_hardware_mediatek" path="hardware/mediatek"
+    remote="github"
+    revision="lineage-22.1" clone-depth="1" />
+  <project name="LineageOS/android_hardware_xiaomi" path="hardware/xiaomi"
+    remote="github"
+    revision="lineage-22.1" clone-depth="1" />
+</manifest>
