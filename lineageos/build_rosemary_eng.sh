@@ -13,7 +13,7 @@ wget https://raw.githubusercontent.com/LesVu/android_kernel_xiaomi_mt6785/refs/h
 echo "persist.sys.usb.config=adb
 sys.usb.config=adb
 sys.usb.state=adb
-vendor.usb.config=adb" >device/xiaomi/rosemary/system.prop
+vendor.usb.config=adb" >>device/xiaomi/rosemary/system.prop
 
 sed -i '/# CONFIG_SYSVIPC is not set/d' kernel/configs/r/android-4.14/android-base.config
 sed -i '/# CONFIG_FHANDLE is not set/d' kernel/configs/r/android-4.14/android-base.config
