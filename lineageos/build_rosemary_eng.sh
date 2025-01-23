@@ -5,7 +5,7 @@ mkdir -p .repo/local_manifests
 wget "https://raw.githubusercontent.com/LesVu/aosp_buildscript/refs/heads/main/lineageos/rosemary-${LINEAGE_VERSION}.xml" -O .repo/local_manifests/rosemary.xml
 /opt/crave/resync.sh
 source build/envsetup.sh
-breakfast rosemary
+breakfast lineage_rosemary-ap4a-eng
 
 rm kernel/xiaomi/mt6785/arch/arm64/configs/rosemary_defconfig
 wget https://raw.githubusercontent.com/LesVu/android_kernel_xiaomi_mt6785/refs/heads/lineage-$LINEAGE_VERSION/arch/arm64/configs/rosemary-mod_defconfig -O kernel/xiaomi/mt6785/arch/arm64/configs/rosemary_defconfig
@@ -19,4 +19,4 @@ sed -i '/# CONFIG_SYSVIPC is not set/d' kernel/configs/r/android-4.14/android-ba
 sed -i '/# CONFIG_FHANDLE is not set/d' kernel/configs/r/android-4.14/android-base.config
 sed -i '/# CONFIG_IP6_NF_NAT is not set/d' kernel/configs/r/android-4.14/android-base.config
 croot
-brunch rosemary-eng
+brunch lineage_rosemary-ap4a-eng
