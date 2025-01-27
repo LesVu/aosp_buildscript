@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <manifest>
-  <project name="TheMuppets/proprietary_vendor_xiaomi_rosemary" path="vendor/xiaomi/rosemary"
+  <project name="LesVu/proprietary_vendor_xiaomi_rosemary" path="vendor/xiaomi/rosemary"
     remote="github"
     revision="lineage-22.1" clone-depth="1" />
   <project name="LesVu/android_device_xiaomi_rosemary" path="device/xiaomi/rosemary"
