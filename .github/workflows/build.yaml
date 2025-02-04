@@ -30,7 +30,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -q -y curl bc jq
 
-          read -r ID CPU_PRICE STORAGE_PRICE RAM_PRICE FIRST_PORT < <(curl -s --location --request GET "https://marketplace.tensordock.com/api/v0/client/deploy/hostnodes?minvCPUs=${CPU_AMOUNT}&minRAM=${RAM_AMOUNT}&minStorage=${STORAGE_AMOUNT}&maxGPUCount=0" |
+          read -r HOSTNODE_ID CPU_PRICE STORAGE_PRICE RAM_PRICE FIRST_PORT < <(curl -s --location --request GET "https://marketplace.tensordock.com/api/v0/client/deploy/hostnodes?minvCPUs=${CPU_AMOUNT}&minRAM=${RAM_AMOUNT}&minStorage=${STORAGE_AMOUNT}&maxGPUCount=0" |
             jq -r '.hostnodes | to_entries[] | {id: .key, cpu_price: .value.specs.cpu.price, storage_price: .value.specs.storage.price, ram_price: .value.specs.ram.price, first_port: (.value.networking.ports | sort | .[0])} | 
               [.id, .cpu_price, .storage_price, .ram_price, .first_port] | @tsv' |
             sort -k2,2n -k3,3n -k4,4n |
@@ -40,11 +40,11 @@ jobs:
             --data-urlencode "api_key=$API_KEY" \
             --data-urlencode "api_token=$API_TOKEN" | jq -e '.virtualmachines | length > 0' >/dev/null; then
             echo "Virtual machines exist"
-            # Execute your desired command here
+            exit 1
           else
             echo "No virtual machines found. Creating..."
             # Deploy the Server
-            curl --location 'https://marketplace.tensordock.com/api/v0/client/deploy/single' \
+            json=$(curl -s --location 'https://marketplace.tensordock.com/api/v0/client/deploy/single' \
               --data-urlencode "api_key=$API_KEY" \
               --data-urlencode "api_token=$API_TOKEN" \
               --data-urlencode "name=Rigg" \
@@ -53,13 +53,14 @@ jobs:
               --data-urlencode "ram=$RAM_AMOUNT" \
               --data-urlencode "external_ports={$FIRST_PORT}" \
               --data-urlencode "internal_ports={22}" \
-              --data-urlencode "hostnode=$ID" \
+              --data-urlencode "hostnode=$HOSTNODE_ID" \
               --data-urlencode "storage=$STORAGE_AMOUNT" \
               --data-urlencode "operating_system=Ubuntu 20.04 LTS" \
-              --data-urlencode "cloudinit_script=runcmd:\n - docker run -d --restart unless-stopped -e REPO_URL=https://github.com/LesVu/aosp_buildscript -e ACCESS_TOKEN=$PAT_TOKEN -e RUNNER_NAME=aosp-builder -e RUNNER_WORKDIR=/runner/work -e RUN_AS_ROOT=false -v /var/run/docker.sock:/var/run/docker.sock -v /runner:/runner --name aosp-builder myoung34/github-runner:ubuntu-focal"
+              --data-urlencode "cloudinit_script=runcmd:\n - docker run -d --restart unless-stopped -e REPO_URL=https://github.com/LesVu/aosp_buildscript -e ACCESS_TOKEN=$PAT_TOKEN -e RUNNER_NAME=aosp-builder -e LABELS=aosp-builder -e RUNNER_WORKDIR=/runner/work -e RUN_AS_ROOT=false -v /var/run/docker.sock:/var/run/docker.sock -v /runner:/runner --name aosp-builder myoung34/github-runner:ubuntu-focal")
           fi
 
           # Now you can use these variables in other commands
+          ID=$(echo "$json" | jq -r '.server')
           # total price from cpu price * cpu amount, ram price * ram amount, storage amount * storage price
           TOTAL_PRICE=$(echo "$CPU_PRICE * $CPU_AMOUNT + $STORAGE_PRICE * $STORAGE_AMOUNT + $RAM_PRICE * $RAM_AMOUNT" | bc -l)
           echo "ID=$ID" >> "$GITHUB_OUTPUT"
@@ -136,7 +137,7 @@ jobs:
     steps:
       - name: Provision Machine
         run: |
-          curl --location 'https://marketplace.tensordock.com/api/v0/client/destroy' \
+          curl --location 'https://marketplace.tensordock.com/api/v0/client/delete/single' \
             --data-urlencode "api_key=$API_KEY" \
             --data-urlencode "api_token=$API_TOKEN" \
-            --data-urlencode "id=${{ needs.create-machine.outputs.ID }}"
+            --data-urlencode "server=${{ needs.create-machine.outputs.ID }}"
