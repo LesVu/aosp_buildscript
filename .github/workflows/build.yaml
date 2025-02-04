@@ -1,0 +1,142 @@
+name: Build Fex
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        required: true
+        default: "0.0.3"
+        type: string
+        description: "Package specified to build"
+
+jobs:
+  create-machine:
+    name: Create build machine
+    runs-on: ubuntu-latest
+    outputs:
+      ID: ${{ steps.machine.outputs.ID }}
+    steps:
+      - name: Provision Machine
+        id: machine
+        env:
+          API_KEY: ${{ secrets.API_KEY }}
+          API_TOKEN: ${{ secrets.API_TOKEN }}
+          PAT_TOKEN: ${{ secrets.PAT }}
+        run: |
+          CPU_AMOUNT=16
+          RAM_AMOUNT=64
+          STORAGE_AMOUNT=512
+
+          sudo apt-get update
+          sudo apt-get install -q -y curl bc jq
+
+          read -r ID CPU_PRICE STORAGE_PRICE RAM_PRICE FIRST_PORT < <(curl -s --location --request GET "https://marketplace.tensordock.com/api/v0/client/deploy/hostnodes?minvCPUs=${CPU_AMOUNT}&minRAM=${RAM_AMOUNT}&minStorage=${STORAGE_AMOUNT}&maxGPUCount=0" |
+            jq -r '.hostnodes | to_entries[] | {id: .key, cpu_price: .value.specs.cpu.price, storage_price: .value.specs.storage.price, ram_price: .value.specs.ram.price, first_port: (.value.networking.ports | sort | .[0])} | 
+              [.id, .cpu_price, .storage_price, .ram_price, .first_port] | @tsv' |
+            sort -k2,2n -k3,3n -k4,4n |
+            head -n 1)
+
+          if curl -s --location 'https://marketplace.tensordock.com/api/v0/client/list' \
+            --data-urlencode "api_key=$API_KEY" \
+            --data-urlencode "api_token=$API_TOKEN" | jq -e '.virtualmachines | length > 0' >/dev/null; then
+            echo "Virtual machines exist"
+            # Execute your desired command here
+          else
+            echo "No virtual machines found. Creating..."
+            # Deploy the Server
+            curl --location 'https://marketplace.tensordock.com/api/v0/client/deploy/single' \
+              --data-urlencode "api_key=$API_KEY" \
+              --data-urlencode "api_token=$API_TOKEN" \
+              --data-urlencode "name=Rigg" \
+              --data-urlencode "gpu_count=0" \
+              --data-urlencode "vcpus=$CPU_AMOUNT" \
+              --data-urlencode "ram=$RAM_AMOUNT" \
+              --data-urlencode "external_ports={$FIRST_PORT}" \
+              --data-urlencode "internal_ports={22}" \
+              --data-urlencode "hostnode=$ID" \
+              --data-urlencode "storage=$STORAGE_AMOUNT" \
+              --data-urlencode "operating_system=Ubuntu 20.04 LTS" \
+              --data-urlencode "cloudinit_script=runcmd:\n - docker run -d --restart unless-stopped -e REPO_URL=https://github.com/LesVu/aosp_buildscript -e ACCESS_TOKEN=$PAT_TOKEN -e RUNNER_NAME=aosp-builder -e RUNNER_WORKDIR=/runner/work -e RUN_AS_ROOT=false -v /var/run/docker.sock:/var/run/docker.sock -v /runner:/runner --name aosp-builder myoung34/github-runner:ubuntu-focal"
+          fi
+
+          # Now you can use these variables in other commands
+          # total price from cpu price * cpu amount, ram price * ram amount, storage amount * storage price
+          TOTAL_PRICE=$(echo "$CPU_PRICE * $CPU_AMOUNT + $STORAGE_PRICE * $STORAGE_AMOUNT + $RAM_PRICE * $RAM_AMOUNT" | bc -l)
+          echo "ID=$ID" >> "$GITHUB_OUTPUT"
+          echo "Total Price: $TOTAL_PRICE"
+
+  build-aosp:
+    name: Build package on arm64
+    needs: [create-machine]
+    if: needs.create-machine.outputs.ID
+    runs-on: aosp-builder
+    env:
+      GH_REPO: ${{ github.repository }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    permissions:
+      contents: write
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: Install deps
+        run: |
+          sudo apt-get update
+          bash ./setup.sh
+
+      - name: Clone aosp
+        run: |
+          source ~/.profile
+          cd ~/android/lineage
+          repo sync -c
+
+      - name: Restore Cached
+        uses: actions/cache/restore@v4
+        with:
+          path: ~/.cache/ccache
+          key: aosp-cache
+
+      - name: Build
+        run: |
+          source ~/.profile
+          cd ~/android/lineage
+          bash lineageos/build_rosemary_eng.sh
+
+      - name: Save Cache
+        uses: actions/cache/save@v4
+        with:
+          path: ~/.cache/ccache
+          key: aosp-cache
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: rosemary
+          path: |
+            ~/android/lineage/out/target/product/rosemary/dtbo.img
+            ~/android/lineage/out/target/product/rosemary/boot.img
+            ~/android/lineage/out/target/product/rosemary/lineage-*.zip
+          retention-days: 7
+
+      - name: Create release
+        run: |
+          gh release delete ${{ inputs.tag }} --yes
+          gh release create ${{ inputs.tag }} ~/android/lineage/out/target/product/rosemary/dtbo.img \
+          ~/android/lineage/out/target/product/rosemary/boot.img \
+          ~/android/lineage/out/target/product/rosemary/lineage-*.zip -p -title "LineageOS Rosemary A15 QPR1" -n "Changes"
+
+  destroy-machine:
+    name: Destroy machine
+    needs: [create-machine, build-aosp]
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    env:
+      API_KEY: ${{ secrets.API_KEY }}
+      API_TOKEN: ${{ secrets.API_TOKEN }}
+    steps:
+      - name: Provision Machine
+        run: |
+          curl --location 'https://marketplace.tensordock.com/api/v0/client/destroy' \
+            --data-urlencode "api_key=$API_KEY" \
+            --data-urlencode "api_token=$API_TOKEN" \
+            --data-urlencode "id=${{ needs.create-machine.outputs.ID }}"

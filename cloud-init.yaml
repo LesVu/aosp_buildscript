@@ -1,5 +1,4 @@
 package_update: true
-package_upgrade: true
 
 packages:
   - bc
@@ -42,6 +41,7 @@ write_files:
     permissions: "0775"
     content: |
       #!/bin/bash
+      cd /home/user
       wget -q https://dl.google.com/android/repository/platform-tools-latest-linux.zip -o platform-tools.zip
       unzip platform-tools.zip -d ~
       echo "# add Android SDK platform tools to path
@@ -70,4 +70,3 @@ write_files:
     owner: user:user
 runcmd:
   - su user -c "bash /run/setup.sh"
-
