@@ -135,7 +135,7 @@ jobs:
           gh release delete ${{ inputs.tag }} --yes
           gh release create ${{ inputs.tag }} ~/android/lineage/out/target/product/rosemary/dtbo.img \
           ~/android/lineage/out/target/product/rosemary/boot.img \
-          ~/android/lineage/out/target/product/rosemary/lineage-*.zip -p -title "LineageOS Rosemary A15 QPR1" -n "Changes"
+          ~/android/lineage/out/target/product/rosemary/lineage-*.zip -p -t "LineageOS Rosemary A15 QPR1" -n "Changes"
 
   destroy-machine:
     name: Destroy machine
