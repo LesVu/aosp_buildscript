@@ -67,6 +67,7 @@ jobs:
 
           if [ "$(echo "$json" | jq -r '.success')" = "false" ]; then
             echo "Failed to create server"
+            echo $json
             exit 1
           fi
           # Now you can use these variables in other commands
