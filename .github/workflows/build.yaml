@@ -111,7 +111,7 @@ jobs:
         run: |
           source ~/.profile
           cd ~/android/lineage
-          bash lineageos/build_rosemary_eng.sh
+          bash $GITHUB_WORKSPACE/lineageos/build_rosemary_eng.sh
 
       - name: Save Cache
         uses: actions/cache/save@v4
