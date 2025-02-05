@@ -30,13 +30,8 @@ fi
 export USE_CCACHE=1
 export CCACHE_EXEC=/usr/bin/ccache' >>~/.profile
 
-source ~/.profile
-
 git config --global user.email "placeholder"
 git config --global user.name "placeholder"
 
 git lfs install
 ccache -M 50G
-
-cd ~/android/lineage
-repo init -u https://github.com/LineageOS/android.git -b lineage-22.1 --git-lfs

@@ -1,4 +1,4 @@
-name: Build Fex
+name: Build LineageOS
 
 on:
   workflow_dispatch:
@@ -67,7 +67,7 @@ jobs:
           echo "Total Price: $TOTAL_PRICE"
 
   build-aosp:
-    name: Build package on arm64
+    name: Build Lineageos
     needs: [create-machine]
     if: needs.create-machine.outputs.ID
     runs-on: aosp-builder
@@ -83,13 +83,16 @@ jobs:
       - name: Install deps
         run: |
           sudo apt-get update
-          bash ./setup.sh
+          bash setup.sh
+          source ~/.profile
+          cd ~/android/lineage
+          repo init -u https://github.com/LineageOS/android.git -b lineage-22.1 --git-lfs
 
       - name: Clone aosp
         run: |
           source ~/.profile
           cd ~/android/lineage
-          repo sync -c
+          repo sync -c --depth 1
 
       - name: Restore Cached
         uses: actions/cache/restore@v4
