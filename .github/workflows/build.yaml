@@ -105,7 +105,7 @@ jobs:
       - name: Restore Cached
         uses: actions/cache/restore@v4
         with:
-          path: ~/.cache/ccache
+          path: ~/.cache
           key: aosp-cache
 
       - name: Build
@@ -117,7 +117,7 @@ jobs:
       - name: Save Cache
         uses: actions/cache/save@v4
         with:
-          path: ~/.cache/ccache
+          path: ~/.cache
           key: aosp-cache
 
       - name: Upload Artifact
