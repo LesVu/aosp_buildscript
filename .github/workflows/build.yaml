@@ -38,9 +38,9 @@ jobs:
 
           if curl -s --location 'https://marketplace.tensordock.com/api/v0/client/list' \
             --data-urlencode "api_key=$API_KEY" \
-            --data-urlencode "api_token=$API_TOKEN" | jq -e '.virtualmachines | length > 0' >/dev/null; then
+            --data-urlencode "api_token=$API_TOKEN" | jq -e '.virtualmachines | to_entries | map(select(.value.name == "AOSP-Builder")) | length > 0' >/dev/null; then
             echo "Virtual machines exist"
-            exit 1
+            exit 0
           else
             # IF HOSTNODE_ID IS NOT EMPTY
             if [ -n "$HOSTNODE_ID" ]; then
@@ -49,7 +49,7 @@ jobs:
               json=$(curl -s --location 'https://marketplace.tensordock.com/api/v0/client/deploy/single' \
                 --data-urlencode "api_key=$API_KEY" \
                 --data-urlencode "api_token=$API_TOKEN" \
-                --data-urlencode "name=Rigg" \
+                --data-urlencode "name=AOSP-Builder" \
                 --data-urlencode "gpu_count=0" \
                 --data-urlencode "vcpus=$CPU_AMOUNT" \
                 --data-urlencode "ram=$RAM_AMOUNT" \
