@@ -39,4 +39,4 @@ ccache -M 50G
 
 source ~/.profile
 cd ~/android/lineage
-REPO_URL="https://gerrit.googlesource.com/git-repo" repo init -u https://github.com/LineageOS/android.git -b lineage-22.1 --git-lfs
+REPO_URL="https://gerrit.googlesource.com/git-repo" repo init -u https://github.com/LineageOS/android.git -b lineage-22.1 --git-lfs --depth=1

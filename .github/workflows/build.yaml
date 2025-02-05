@@ -99,7 +99,7 @@ jobs:
         run: |
           source ~/.profile
           cd ~/android/lineage
-          repo sync -c --depth 1
+          repo sync -c
 
       - name: Restore Cached
         uses: actions/cache/restore@v4
@@ -155,3 +155,4 @@ jobs:
             echo "Failed to delete server"
             exit 1
           fi
+          echo "Successfully deleted server"
