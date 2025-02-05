@@ -25,7 +25,7 @@ jobs:
         run: |
           CPU_AMOUNT=16
           RAM_AMOUNT=64
-          STORAGE_AMOUNT=512
+          STORAGE_AMOUNT=500
 
           sudo apt-get update
           sudo apt-get install -q -y curl bc jq
