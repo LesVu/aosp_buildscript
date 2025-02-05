@@ -32,6 +32,11 @@ export CCACHE_EXEC=/usr/bin/ccache' >>~/.profile
 
 git config --global user.email "placeholder"
 git config --global user.name "placeholder"
+git config --global color.ui false
 
 git lfs install
 ccache -M 50G
+
+source ~/.profile
+cd ~/android/lineage
+REPO_URL="https://gerrit.googlesource.com/git-repo" repo init -u https://github.com/LineageOS/android.git -b lineage-22.1 --git-lfs
