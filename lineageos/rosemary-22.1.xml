@@ -12,7 +12,7 @@
   <project name="LineageOS/android_device_mediatek_sepolicy_vndr" path="device/mediatek/sepolicy_vndr"
     remote="github"
     revision="lineage-22.1" clone-depth="1" />
-  <project name="LesVu/android_hardware_mediatek" path="hardware/mediatek"
+  <project name="LineageOS/android_hardware_mediatek" path="hardware/mediatek"
     remote="github"
     revision="lineage-22.1" clone-depth="1" />
   <project name="LineageOS/android_hardware_xiaomi" path="hardware/xiaomi"

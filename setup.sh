@@ -37,6 +37,12 @@ git config --global color.ui false
 git lfs install
 ccache -M 50G
 
+mkdir -p ~/android/lineage/rbe
+wget https://github.com/LesVu/aosp_buildscript/releases/download/_1/reclient-0.172.0-linux-amd64.zip
+unzip reclient-0.172.0-linux-amd64.zip -d ~/android/lineage/rbe
+rm reclient-0.172.0-linux-amd64.zip
+
+# shellcheck source=/dev/null
 source ~/.profile
-cd ~/android/lineage
+cd ~/android/lineage || exit 1
 REPO_URL="https://gerrit.googlesource.com/git-repo" repo init -u https://github.com/LineageOS/android.git -b lineage-22.1 --git-lfs --depth=1

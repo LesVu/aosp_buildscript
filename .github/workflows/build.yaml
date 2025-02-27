@@ -85,6 +85,8 @@ jobs:
     env:
       GH_REPO: ${{ github.repository }}
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      RBE_remote_headers: ${{ secrets.RBE_remote_headers }}
+      RBE_service: ${{ secrets.RBE_url }}
     permissions:
       contents: write
     steps:
@@ -102,23 +104,11 @@ jobs:
           cd ~/android/lineage
           repo sync -c
 
-      - name: Restore Cached
-        uses: actions/cache/restore@v4
-        with:
-          path: ~/.cache
-          key: aosp-cache
-
       - name: Build
         run: |
           source ~/.profile
           cd ~/android/lineage
           bash $GITHUB_WORKSPACE/lineageos/build_rosemary_eng.sh
-
-      - name: Save Cache
-        uses: actions/cache/save@v4
-        with:
-          path: ~/.cache
-          key: aosp-cache
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
