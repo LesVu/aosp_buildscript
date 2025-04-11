@@ -31,7 +31,7 @@ jobs:
           sudo apt-get install -q -y curl bc jq
 
           read -r HOSTNODE_ID CPU_PRICE STORAGE_PRICE RAM_PRICE FIRST_PORT < <(curl -s --location --request GET "https://marketplace.tensordock.com/api/v0/client/deploy/hostnodes?minvCPUs=${CPU_AMOUNT}&minRAM=${RAM_AMOUNT}&minStorage=${STORAGE_AMOUNT}&maxGPUCount=0" |
-            jq -r '.hostnodes | to_entries[] | {id: .key, cpu_price: .value.specs.cpu.price, storage_price: .value.specs.storage.price, ram_price: .value.specs.ram.price, first_port: (.value.networking.ports | sort | .[0])} | 
+            jq -r '.hostnodes | to_entries[] | {id: .key, cpu_price: .value.specs.cpu.price, storage_price: .value.specs.storage.price, ram_price: .value.specs.ram.price, first_port: (.value.networking.ports | sort | .[0])} |
               [.id, .cpu_price, .storage_price, .ram_price, .first_port] | @tsv' |
             sort -k2,2n -k3,3n -k4,4n |
             head -n 1)
@@ -85,8 +85,6 @@ jobs:
     env:
       GH_REPO: ${{ github.repository }}
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      RBE_remote_headers: ${{ secrets.RBE_remote_headers }}
-      RBE_service: ${{ secrets.RBE_url }}
     permissions:
       contents: write
     steps:

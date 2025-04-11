@@ -6,7 +6,6 @@ wget "https://raw.githubusercontent.com/LesVu/aosp_buildscript/refs/heads/main/l
 /opt/crave/resync.sh || repo sync
 # shellcheck source=/dev/null
 source build/envsetup.sh
-bash "$GITHUB_WORKSPACE"/rbe.sh
 
 breakfast lineage_rosemary-ap4a-eng
 
