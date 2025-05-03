@@ -30,13 +30,13 @@ jobs:
           sudo apt-get update
           sudo apt-get install -q -y curl bc jq
 
-          read -r HOSTNODE_ID CPU_PRICE STORAGE_PRICE RAM_PRICE FIRST_PORT < <(curl -s --location --request GET "https://marketplace.tensordock.com/api/v0/client/deploy/hostnodes?minvCPUs=${CPU_AMOUNT}&minRAM=${RAM_AMOUNT}&minStorage=${STORAGE_AMOUNT}&maxGPUCount=0" |
+          read -r HOSTNODE_ID CPU_PRICE STORAGE_PRICE RAM_PRICE FIRST_PORT < <(curl -s --location --request GET "https://dashboard.tensordock.com/api/v0/client/deploy/hostnodes?minvCPUs=${CPU_AMOUNT}&minRAM=${RAM_AMOUNT}&minStorage=${STORAGE_AMOUNT}&maxGPUCount=0" |
             jq -r '.hostnodes | to_entries[] | {id: .key, cpu_price: .value.specs.cpu.price, storage_price: .value.specs.storage.price, ram_price: .value.specs.ram.price, first_port: (.value.networking.ports | sort | .[0])} |
               [.id, .cpu_price, .storage_price, .ram_price, .first_port] | @tsv' |
             sort -k2,2n -k3,3n -k4,4n |
             head -n 1)
 
-          if curl -s --location 'https://marketplace.tensordock.com/api/v0/client/list' \
+          if curl -s --location 'https://dashboard.tensordock.com/api/v0/client/list' \
             --data-urlencode "api_key=$API_KEY" \
             --data-urlencode "api_token=$API_TOKEN" | jq -e '.virtualmachines | to_entries | map(select(.value.name == "AOSP-Builder")) | length > 0' >/dev/null; then
             echo "Virtual machines exist"
@@ -46,7 +46,7 @@ jobs:
             if [ -n "$HOSTNODE_ID" ]; then
               echo "No virtual machines found. Creating..."
               # Deploy the Server
-              json=$(curl -s --location 'https://marketplace.tensordock.com/api/v0/client/deploy/single' \
+              json=$(curl -s --location 'https://dashboard.tensordock.com/api/v0/client/deploy/single' \
                 --data-urlencode "api_key=$API_KEY" \
                 --data-urlencode "api_token=$API_TOKEN" \
                 --data-urlencode "name=AOSP-Builder" \
@@ -67,7 +67,7 @@ jobs:
 
           if [ "$(echo "$json" | jq -r '.success')" = "false" ]; then
             echo "Failed to create server"
-            echo $json
+            echo "$json"
             exit 1
           fi
           # Now you can use these variables in other commands
@@ -136,7 +136,7 @@ jobs:
     steps:
       - name: Provision Machine
         run: |
-          json=$(curl --location 'https://marketplace.tensordock.com/api/v0/client/delete/single' \
+          json=$(curl --location 'https://dashboard.tensordock.com/api/v0/client/delete/single' \
             --data-urlencode "api_key=$API_KEY" \
             --data-urlencode "api_token=$API_TOKEN" \
             --data-urlencode "server=${{ needs.create-machine.outputs.ID }}")
