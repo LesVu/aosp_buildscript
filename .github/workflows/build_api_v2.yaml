@@ -1,0 +1,198 @@
+name: Build LineageOS
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        required: true
+        default: "0.0.3"
+        type: string
+        description: "Package specified to build"
+
+jobs:
+  create-machine:
+    name: Create build machine
+    runs-on: ubuntu-latest
+    outputs:
+      ID: ${{ steps.machine.outputs.ID }}
+    steps:
+      - name: Provision Machine
+        id: machine
+        env:
+          API_TOKEN: ${{ secrets.API_TOKEN }}
+          PAT_TOKEN: ${{ secrets.PAT }}
+        run: |
+          CPU_AMOUNT=16
+          RAM_AMOUNT=64
+          STORAGE_AMOUNT=500
+
+          sudo apt-get update
+          sudo apt-get install -q -y curl bc jq
+
+          td_api() {
+            local method="$1"
+            local endpoint="$2"
+            local body_string="$3"
+
+            # Set the Authorization and Content-Type headers
+            if [[ "$body_string" != "" ]]; then
+              response=$(curl --request "$method" \
+                --silent \
+                "https://dashboard.tensordock.com/api/v2/$endpoint" \
+                --header "Authorization: Bearer $API_TOKEN" \
+                --header "Content-Type: application/json" \
+                --header "Accept: application/json" \
+                --data "$body_string")
+            else
+              response=$(curl --request "$method" \
+                --silent \
+                "https://dashboard.tensordock.com/api/v2/$endpoint" \
+                --header "Authorization: Bearer $API_TOKEN" \
+                --header "Content-Type: application/json" \
+                --header "Accept: application/json")
+            fi
+
+            echo "$response"
+          }
+
+          # Extract the best matching node
+          hostnode=$(td_api "GET" "hostnodes" "" | jq "
+            .data.hostnodes
+            | sort_by(.location.network_speed_gbps) | reverse
+            | map(select(
+                .available_resources.vcpu_count >= $CPU_AMOUNT and
+                .available_resources.ram_gb >= $RAM_AMOUNT and
+                .available_resources.storage_gb >= $STORAGE_AMOUNT
+              ))
+            | .[0]
+          ")
+
+          if [ "$hostnode" != "null" ]; then
+            HOSTNODE_ID=$(echo "$hostnode" | jq -r '.id')
+            CPU_PRICE=$(echo "$hostnode" | jq -r '.pricing.per_vcpu_hr')
+            RAM_PRICE=$(echo "$hostnode" | jq -r '.pricing.per_gb_ram_hr')
+            STORAGE_PRICE=$(echo "$hostnode" | jq -r '.pricing.per_gb_storage_hr')
+            FIRST_PORT=$(echo "$hostnode" | jq -r '.available_resources.available_ports[0]')
+          else
+            echo "No suitable host node found."
+            exit 1
+          fi
+
+          if td_api "GET" "instances" "" |
+            jq -e 'if (.data | type) == "object" then .data.instances[] | select(.attributes.name == "AOSP-Builder") else empty end' >/dev/null; then
+            echo "Virtual machines exist"
+            exit 0
+          else
+            echo "No virtual machines found. Creating..."
+            # Deploy the Server
+            json=$(td_api "POST" "instances" "{
+            \"data\": {
+              \"type\": \"virtualmachine\",
+              \"attributes\": {
+                \"name\": \"AOSP-Builder\",
+                \"type\": \"virtualmachine\",
+                \"image\": \"ubuntu2404\",
+                \"hostnode_id\": \"$HOSTNODE_ID\",
+                \"resources\": {
+                  \"vcpu_count\": $CPU_AMOUNT,
+                  \"ram_gb\": $RAM_AMOUNT,
+                  \"storage_gb\": $STORAGE_AMOUNT,
+                  \"gpus\": { }
+                },
+                \"port_forwards\": [
+                  {
+                    \"internal_port\": 22,
+                    \"external_port\": $FIRST_PORT
+                  }
+                ],
+                \"ssh_key_id\": \"abb0ad8c-705b-4ffa-b12f-dcebb61c4406\",
+                \"cloud_init\": {
+                  \"runcmd\": [
+                    \"apt-get install docker -q -y\",
+                    \"docker run -d --restart unless-stopped -e REPO_URL=https://github.com/LesVu/aosp_buildscript -e ACCESS_TOKEN=$PAT_TOKEN -e RUNNER_NAME=aosp-builder -e LABELS=aosp-builder -e RUNNER_WORKDIR=/runner/work -e RUN_AS_ROOT=false -v /var/run/docker.sock:/var/run/docker.sock -v /runner:/runner --name aosp-builder myoung34/github-runner:ubuntu-focal\"
+                  ],
+                  \"package_update\": true
+                }
+              }
+            }
+          }")
+          fi
+                  
+          if [ "$(echo "$json" | jq -r '.data.status')" != "running" ]; then
+            echo "Failed to create server"
+            echo "$json"
+            exit 1
+          fi
+          # Now you can use these variables in other commands
+          ID=$(echo "$json" | jq -r '.data.id')
+          # total price from cpu price * cpu amount, ram price * ram amount, storage amount * storage price
+          TOTAL_PRICE=$(echo "$CPU_PRICE * $CPU_AMOUNT + $STORAGE_PRICE * $STORAGE_AMOUNT + $RAM_PRICE * $RAM_AMOUNT" | bc -l)
+          echo "ID=$ID" >>"$GITHUB_OUTPUT"
+          echo "Total Price: $TOTAL_PRICE"
+
+  build-aosp:
+    name: Build Lineageos
+    needs: [create-machine]
+    if: needs.create-machine.outputs.ID
+    runs-on: aosp-builder
+    env:
+      GH_REPO: ${{ github.repository }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    permissions:
+      contents: write
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: Install deps
+        run: |
+          sudo apt-get update
+          bash setup.sh
+
+      - name: Sync and Build
+        run: |
+          source ~/.profile
+          cd ~/android/lineage
+          bash $GITHUB_WORKSPACE/lineageos/build_rosemary_eng.sh
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: rosemary
+          path: |
+            ~/android/lineage/out/target/product/rosemary/dtbo.img
+            ~/android/lineage/out/target/product/rosemary/boot.img
+            ~/android/lineage/out/target/product/rosemary/lineage-*.zip
+          retention-days: 7
+
+      - name: Create release
+        run: |
+          gh release delete ${{ inputs.tag }} --yes
+          gh release create ${{ inputs.tag }} ~/android/lineage/out/target/product/rosemary/dtbo.img \
+          ~/android/lineage/out/target/product/rosemary/boot.img \
+          ~/android/lineage/out/target/product/rosemary/lineage-*.zip -p -t "LineageOS Rosemary A15 QPR1" -n "Changes"
+
+  destroy-machine:
+    name: Destroy machine
+    needs: [create-machine, build-aosp]
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    env:
+      API_TOKEN: ${{ secrets.API_TOKEN }}
+    steps:
+      - name: Provision Machine
+        run: |
+          sudo apt-get update
+          sudo apt-get install -q -y curl jq
+          json=$(curl --request "DELETE" \
+            --silent \
+            "https://dashboard.tensordock.com/api/v2/instances/${{ needs.create-machine.outputs.ID }}" \
+            --header "Authorization: Bearer $API_TOKEN" \
+            --header "Content-Type: application/json" \
+            --header "Accept: application/json")
+          echo "$json"
+          # if [ "$(echo "$json" | jq -r '.data.type')" != "success" ]; then
+          #   echo "Failed to delete server"
+          #   exit 1
+          # fi
+          # echo "$json" | jq -r '.data.attributes.message'
