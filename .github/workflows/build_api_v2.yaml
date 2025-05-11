@@ -108,7 +108,7 @@ jobs:
                 \"ssh_key_id\": \"abb0ad8c-705b-4ffa-b12f-dcebb61c4406\",
                 \"cloud_init\": {
                   \"runcmd\": [
-                    \"apt-get install docker -q -y\",
+                    \"apt-get install curl && curl -fsSL https://get.docker.com | bash \",
                     \"docker run -d --restart unless-stopped -e REPO_URL=https://github.com/LesVu/aosp_buildscript -e ACCESS_TOKEN=$PAT_TOKEN -e RUNNER_NAME=aosp-builder -e LABELS=aosp-builder -e RUNNER_WORKDIR=/runner/work -e RUN_AS_ROOT=false -v /var/run/docker.sock:/var/run/docker.sock -v /runner:/runner --name aosp-builder myoung34/github-runner:ubuntu-focal\"
                   ],
                   \"package_update\": true
