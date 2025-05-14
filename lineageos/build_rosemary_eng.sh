@@ -14,5 +14,7 @@ sys.usb.config=adb
 sys.usb.state=adb
 vendor.usb.config=adb" >>device/xiaomi/rosemary/system.prop
 
+echo "BOARD_KERNEL_CMDLINE += androidboot.selinux=permissive" >>device/xiaomi/rosemary/BoardConfig.mk
+
 croot
 brunch lineage_rosemary-ap4a-eng
