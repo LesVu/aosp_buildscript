@@ -8,7 +8,7 @@
     revision="lineage-22.1" clone-depth="1" />
   <project name="LesVu/android_kernel_xiaomi_mt6785" path="kernel/xiaomi/mt6785"
     remote="github"
-    revision="lineage-21" clone-depth="1" />
+    revision="lineage-22.1" clone-depth="1" />
   <project name="LineageOS/android_device_mediatek_sepolicy_vndr" path="device/mediatek/sepolicy_vndr"
     remote="github"
     revision="lineage-22.1" clone-depth="1" />

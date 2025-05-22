@@ -3,8 +3,10 @@
 sudo apt-get update
 sudo apt-get upgrade -y
 
-sudo apt-get install -y bc bison build-essential ccache curl flex g++-multilib gcc-multilib git git-lfs gnupg gperf imagemagick lib32readline-dev lib32z1-dev libelf-dev liblz4-tool libsdl1.2-dev libssl-dev \
-  libxml2 libxml2-utils lzop pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev lib32ncurses5-dev libncurses5 libncurses5-dev unzip tmux python-is-python3
+sudo apt-get install -y bc bison build-essential ccache curl flex g++-multilib gcc-multilib git git-lfs gnupg \
+  gperf imagemagick lib32readline-dev lib32z1-dev libelf-dev liblz4-tool libsdl1.2-dev libssl-dev \
+  libxml2 libxml2-utils lzop pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev lib32ncurses5-dev \
+  libncurses5 libncurses5-dev unzip tmux python-is-python3
 
 mkdir -p ~/bin
 mkdir -p ~/android/lineage
@@ -40,4 +42,7 @@ ccache -M 50G
 # shellcheck source=/dev/null
 source ~/.profile
 cd ~/android/lineage || exit 1
-REPO_URL="https://gerrit.googlesource.com/git-repo" repo init -u https://github.com/LineageOS/android.git -b lineage-22.1 --git-lfs --depth=1
+REPO_URL="https://gerrit.googlesource.com/git-repo" repo init -u https://github.com/LineageOS/android.git \
+  -b lineage-22.1 \
+  --git-lfs \
+  --depth=1
