@@ -22,6 +22,7 @@ wget "https://raw.githubusercontent.com/LesVu/aosp_buildscript/refs/heads/main/l
 /opt/crave/resync.sh || repo sync -c
 # shellcheck source=/dev/null
 source build/envsetup.sh
+git --git-dir=device/xiaomi/rosemary/.git --work-tree=device/xiaomi/rosemary checkout system.prop BoardConfig.mk
 
 if [ "$BUILD_TYPE" == "eng" ]; then
   echo "persist.sys.usb.config=adb
@@ -33,6 +34,4 @@ vendor.usb.config=adb" >>device/xiaomi/rosemary/system.prop
 fi
 
 croot
-RELEASE=$(find "$(gettop)"/build/release/aconfig/* -maxdepth 0 -type d -name "[a-z][a-z][0-9][a-z]" -printf '%f\n' |
-  tail -n1)
-brunch rosemary "$BUILD_TYPE" || brunch lineage_rosemary-"$RELEASE"-"$BUILD_TYPE"
+brunch rosemary "$BUILD_TYPE"
